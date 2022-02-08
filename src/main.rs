@@ -22,8 +22,8 @@ struct DepositInput {
     refund: String,
     nullifier: String,
     secret: String,
-    // path_elements: Vec<String>,
-    // path_indices: Vec<i32>,
+    path_elements: Vec<String>,
+    path_indices: Vec<i32>,
 }
 
 fn main() {
@@ -87,9 +87,14 @@ fn main() {
         "nullifierHash",
         BigInt::parse_bytes(input_deposit.nullifier_hash.as_bytes(), 10).unwrap(),
     );
+
     builder.push_input(
         "relayer",
-        BigInt::parse_bytes(input_deposit.relayer.as_bytes(), 10).unwrap(),
+        BigInt::parse_bytes(
+            input_deposit.relayer.strip_prefix("0x").unwrap().as_bytes(),
+            16,
+        )
+        .unwrap(),
     );
     builder.push_input(
         "recipient",
@@ -111,14 +116,21 @@ fn main() {
         "secret",
         BigInt::parse_bytes(input_deposit.secret.as_bytes(), 10).unwrap(),
     );
-    // builder.push_input(
-    //     "pathElement",
-    //     BigInt::parse_bytes(input_deposit.path_elements, 10).unwrap(),
-    // );
-    // builder.push_input(
-    //     "path_indices",
-    //     BigInt::parse_bytes(input_deposit.path_indices.as_bytes(), 10).unwrap(),
-    // );
+    builder.push_input(
+        "secret",
+        BigInt::parse_bytes(input_deposit.secret.as_bytes(), 10).unwrap(),
+    );
+
+    for v in input_deposit.path_elements.iter() {
+        builder.push_input(
+            "pathElement",
+            BigInt::parse_bytes(v.as_bytes(), 10).unwrap(),
+        );
+    }
+
+    for v in input_deposit.path_indices.iter() {
+        builder.push_input("pathIndices", BigInt::from(*v));
+    }
 
     // Create an empty instance for setting it up
     let circom = builder.setup();

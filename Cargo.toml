@@ -18,7 +18,8 @@ webb-pedersen-hash = "0.1.0"
 # ark-circom = { git = "https://github.com/oskarth/ark-circom", features = ["circom-2"], branch = "circom-2-support" }
 
 generic-array = "0.14.5"
-ark-circom = { git = "https://github.com/gakonst/ark-circom.git", features = ["circom-2"] }
+# ark-circom = { git = "https://github.com/gakonst/ark-circom.git", features = ["circom-2"] }
+ark-circom = { git = "https://github.com/philsippl/ark-circom.git", features = ["circom-2"] }
 # ark-circom = { path = "./lib/ark-circom", features = ["circom-2"] }
 ark-bn254 = { version = "0.3.0" }
 ark-std = { version = "0.3.0", default-features = false, features = ["parallel"] }
