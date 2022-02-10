@@ -1,4 +1,4 @@
-pragma circom 2.0.0;
+pragma circom 2.0.3;
 
 include "./circomlib/circuits/bitify.circom";
 include "./circomlib/circuits/pedersen.circom";
@@ -68,4 +68,6 @@ template Withdraw(levels) {
     refundSquare <== refund * refund;
 }
 
-component main = Withdraw(20);
+component main{
+    public [root, nullifierHash, recipient, relayer, fee, refund]
+} = Withdraw(20);
