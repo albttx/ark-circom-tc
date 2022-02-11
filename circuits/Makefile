@@ -3,7 +3,7 @@ all: build
 
 .PHONY: build
 build:
-	circom withdraw.circom --r1cs --wasm  --sym --json
+	circom withdraw.circom --r1cs --wasm  --sym --json --inspect
 
 generate-witness:
 	snarkjs calculatewitness --wasm ./withdraw_js/withdraw.wasm --input input.json --witness witness.wtns

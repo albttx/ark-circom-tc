@@ -67,8 +67,7 @@ fn main() {
     let input_deposit: DepositInput =
         serde_json::from_str(input_json_data).expect("JSON was not well-formatted");
 
-    println!("json: {:?}", input_deposit);
-    // println!("root: {}", input_json.get("root").unwrap());
+    println!("json: {:?}\n\n", input_deposit);
 
     // Load the WASM and R1CS for witness and proof generation
     let cfg = CircomConfig::<Bn254>::new(
@@ -79,6 +78,7 @@ fn main() {
 
     // Insert our public inputs as key value pairs
     let mut builder = CircomBuilder::new(cfg);
+
     builder.push_input(
         "root",
         BigInt::parse_bytes(input_deposit.root.as_bytes(), 10).unwrap(),
@@ -89,6 +89,11 @@ fn main() {
     );
 
     builder.push_input(
+        "recipient",
+        BigInt::parse_bytes(input_deposit.recipient.as_bytes(), 10).unwrap(),
+    );
+
+    builder.push_input(
         "relayer",
         BigInt::parse_bytes(
             input_deposit.relayer.strip_prefix("0x").unwrap().as_bytes(),
@@ -96,10 +101,7 @@ fn main() {
         )
         .unwrap(),
     );
-    builder.push_input(
-        "recipient",
-        BigInt::parse_bytes(input_deposit.recipient.as_bytes(), 10).unwrap(),
-    );
+
     builder.push_input(
         "fee",
         BigInt::parse_bytes(input_deposit.fee.as_bytes(), 10).unwrap(),
@@ -116,14 +118,10 @@ fn main() {
         "secret",
         BigInt::parse_bytes(input_deposit.secret.as_bytes(), 10).unwrap(),
     );
-    builder.push_input(
-        "secret",
-        BigInt::parse_bytes(input_deposit.secret.as_bytes(), 10).unwrap(),
-    );
 
     for v in input_deposit.path_elements.iter() {
         builder.push_input(
-            "pathElement",
+            "pathElements",
             BigInt::parse_bytes(v.as_bytes(), 10).unwrap(),
         );
     }
