@@ -56,7 +56,7 @@ dependencies = [
  "ark-bn254",
  "ark-ec",
  "ark-ff",
- "ark-groth16",
+ "ark-groth16 0.3.0 (git+https://github.com/arkworks-rs/groth16?rev=765817f)",
  "ark-poly",
  "ark-relations",
  "ark-serialize",
@@ -81,9 +81,13 @@ version = "0.1.0"
 dependencies = [
  "ark-bn254",
  "ark-circom",
- "ark-groth16",
+ "ark-ec",
+ "ark-ff",
+ "ark-groth16 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ark-serialize",
  "ark-std",
  "generic-array",
+ "hex",
  "num-bigint",
  "num-traits",
  "rand",
@@ -181,6 +185,22 @@ dependencies = [
  "num-traits",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "ark-groth16"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "38f8fff7468e947130b5caf9bdd27de8b913cf30e15104b4f0cd301726b3d897"
+dependencies = [
+ "ark-crypto-primitives",
+ "ark-ec",
+ "ark-ff",
+ "ark-poly",
+ "ark-relations",
+ "ark-serialize",
+ "ark-std",
+ "rayon",
 ]
 
 [[package]]

@@ -12,6 +12,8 @@ thiserror = { version = "1.0.23" }
 num-bigint = { version = "0.4", default-features = false,  features = ["rand"]}
 num-traits = { version = "0.2.0", default-features = false }
 
+hex = "0.4.3"
+
 rand = "0.8.4"
 webb-pedersen-hash = "0.1.0"
 # ethers = { git = "https://github.com/gakonst/ethers-rs" }
@@ -24,4 +26,10 @@ ark-circom = { git = "https://github.com/philsippl/ark-circom.git", features = [
 # ark-circom = { path = "./lib/ark-circom", features = ["circom-2"] }
 ark-bn254 = { version = "0.3.0" }
 ark-std = { version = "0.3.0", default-features = false, features = ["parallel"] }
-ark-groth16 = { git = "https://github.com/arkworks-rs/groth16", rev = "765817f", features = ["parallel"] }
+# ark-groth16 = { git = "https://github.com/arkworks-rs/groth16", rev = "765817f", features = ["parallel"] }
+
+
+ark-groth16 = "0.3.0"
+ark-serialize = { version = "0.3.0" }
+ark-ff = "0.3.0"
+ark-ec  = { version = "^0.3.0", default-features = false }
