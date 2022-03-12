@@ -33,3 +33,4 @@ ark-groth16 = "0.3.0"
 ark-serialize = { version = "0.3.0" }
 ark-ff = "0.3.0"
 ark-ec  = { version = "^0.3.0", default-features = false }
+arkworks-utils = { version = "0.4.19", default-features = false}

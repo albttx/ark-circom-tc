@@ -1,3 +1,5 @@
+#![feature(core_intrinsics)]
+
 use num_bigint::{BigInt, RandomBits};
 // use num_traits::cast::ToPrimitive;
 use serde::Deserialize;
@@ -7,23 +9,16 @@ use serde_json;
 use ark_serialize::{CanonicalDeserialize, CanonicalSerialize};
 use ark_std::rand::thread_rng;
 
-use ark_bn254::Bn254;
+use ark_bn254::{Bn254, Fr};
 use ark_circom::{CircomBuilder, CircomConfig};
-use ark_ec::PairingEngine;
 use ark_groth16::{
-    create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof, Groth16,
-    Proof, VerifyingKey,
+    create_random_proof, generate_random_parameters, prepare_verifying_key, verify_proof, Proof,
+    VerifyingKey,
 };
 
 use rand::Rng;
 
-use ark_ff::bytes::ToBytes;
-
 pub fn rbigint(nbytes: u64) -> BigInt {
-    // let mut buf = [0u8; 31];
-    // let mut buf = vec!<>
-    // getrandom(&mut buf).unwrap();
-    // println!("buf:  {:?}", buf);
     let mut rng = rand::thread_rng();
     return rng.sample(RandomBits::new(nbytes));
 }
@@ -46,42 +41,9 @@ struct DepositInput {
 #[derive(Debug, Deserialize)]
 struct Withdraw {
     proof: String,
-    pvk: String,
+    vk: String,
     inputs: String,
 }
-
-// #[derive(Debug)]
-// struct Withdraw<E: PairingEngine> {
-//     proof: String,
-//     pvk: String,
-//     inputs: String,
-// }
-
-// impl<E: PairingEngine> Withdraw<E> {
-//     pub fn verify(public_inp_bytes: &[u8], proof_bytes: &[u8], vk_bytes: &[u8]) {
-//         // ) -> Result<bool, Error> {
-//         // let public_input_field_elts = to_field_elements::<E::Fr>(public_inp_bytes)?;
-//         // let vk = VerifyingKey::<E>::deserialize(vk_bytes)?;
-//         // let proof = Proof::<E>::deserialize(proof_bytes)?;
-//         // let res = verify_groth16::<E>(&vk, &public_input_field_elts, &proof)?;
-//         // Ok(res)
-//     }
-// }
-
-// use ark_std::marker::PhantomData;
-// pub struct ArkworksVerifierGroth16<E: PairingEngine>(PhantomData<E>);
-
-// pub fn verify_groth16<E: PairingEngine>(
-//     pvk_bytes: &[u8],
-//     // vk: &VerifyingKey<E>,
-//     // public_inputs: &[E::Fr],
-//     // proof: &Proof<E>,
-// ) {
-//     // let res = Groth16::<E>::verify(vk, public_inputs, proof)?;
-//     let vk = VerifyingKey::<E>::deserialize(pvk_bytes).unwrap();
-
-//     // let proof = Proof::<E>::deserialize(proof_bytes)?;
-// }
 
 fn main() {
     let input_json_data = r#"
@@ -128,27 +90,21 @@ fn main() {
 
     let withdraw = generate_proof(input_deposit);
 
-    // let mut proof_bytes: Vec<u8> = Vec::new();
-    // let mut proof_bytes = [0u8; 128];
-    // hex::decode_to_slice(withdraw.proof, &mut proof_bytes).unwrap();
+    let vk_bytes = hex::decode(&withdraw.vk).unwrap();
+    let vk = VerifyingKey::<Bn254>::deserialize(&mut vk_bytes.as_slice()).unwrap();
+    let pvk = prepare_verifying_key(&vk);
 
-    let mut pvk_bytes = hex::decode(&withdraw.pvk).unwrap().as_slice();
-    VerifyingKey::deserialize(&mut pvk_bytes);
+    let proof_bytes = hex::decode(&withdraw.proof).unwrap();
+    let proof = Proof::<Bn254>::deserialize(&mut proof_bytes.as_slice()).unwrap();
 
-    // verify_groth16::<>(&pvk_bytes);
-    // use ark_groth16::Groth16;
-    // VerifyingKey::deserialize(&mut pvk_bytes);
+    let input_bytes_arr = hex::decode(&withdraw.inputs).unwrap();
 
-    // let v = <Groth16<Bn254>>::VerifyingKey::deserialize(&pvk_bytes[..]).unwrap();
-    // let v = <Groth16<Bls12_381>>::VerifyingKey::deserialize(&pvk_bytes[..]).unwrap();
-    // let pvk = VerifyingKey::<E>::deserialize(&pvk_bytes);
-    // let pvk = VerifyingKey::deserialize_unchecked(&mut pvk_bytes);
+    let intputs = Vec::<Fr>::deserialize(&mut input_bytes_arr.as_slice()).unwrap();
 
-    // let vk = VerifyingKey::<E>::deserialize(vk_bytes)?;
-    // let proof = Proof::<E>::deserialize(proof_bytes)?;
-    // let res = verify_groth16::<E>(&vk, &public_input_field_elts, &proof)?;
-    // let verified = verify_proof(&pvk, &proof, &inputs).unwrap();
-    // assert!(verified);
+    // Verify
+    let verified = verify_proof(&pvk, &proof, &intputs).unwrap();
+    assert!(verified);
+    println!("verified: {} !", verified);
 }
 
 fn generate_proof(input_deposit: DepositInput) -> Withdraw {
@@ -222,28 +178,27 @@ fn generate_proof(input_deposit: DepositInput) -> Withdraw {
     let circom = builder.build().unwrap();
 
     let inputs = circom.get_public_inputs().unwrap();
-
-    let proof = create_random_proof(circom, &params, &mut rng).unwrap();
-
-    let mut proof_bytes = [0u8; 128];
-    proof
-        .serialize(&mut proof_bytes[..])
-        .expect("serialization of proof into array should be infallible");
-
-    let pvk = prepare_verifying_key(&params.vk);
-
     let mut inputs_bytes: Vec<u8> = Vec::new();
     inputs
         .serialize(&mut inputs_bytes)
         .expect("serialization of inputs into array should be infallible");
 
-    let mut pvk_bytes: Vec<u8> = Vec::new();
-    pvk.write(&mut pvk_bytes).expect("should serialize pvk");
+    let proof = create_random_proof(circom, &params, &mut rng).unwrap();
+    let mut proof_bytes = [0u8; 128];
+    proof
+        .serialize(&mut proof_bytes[..])
+        .expect("serialization of proof into array should be infallible");
 
-    // pvk.write(mut writer: W)
+    // let pvk = prepare_verifying_key(&params.vk);
+    let mut vk_bytes: Vec<u8> = Vec::new();
+    params
+        .vk
+        .serialize(&mut vk_bytes)
+        .expect("should serialize pvk");
+
     Withdraw {
         proof: hex::encode(proof_bytes),
-        pvk: hex::encode(pvk_bytes),
+        vk: hex::encode(vk_bytes),
         inputs: hex::encode(inputs_bytes),
     }
 }
